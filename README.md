@@ -1,50 +1,39 @@
-Example Flask+SQLAlchemy Project
-================================
+# HPotter-API
 
-This example project demos integration between Graphene, Flask and SQLAlchemy.
-The project contains two models, one named `Department` and another
-named `Employee`.
+A graphene-sqlalchemy api to request data from the HPotter database
 
-Getting started
----------------
+## Getting started
 
-First you'll need to get the source of the project. Do this by cloning the
-whole Graphene-SQLAlchemy repository:
+*  `pip3 install -r requirements.txt`
+*  `python3 -m app`
+*  Navigate to localhost:5000/graphql
 
-```bash
-# Get the example project code
-git clone https://github.com/graphql-python/graphene-sqlalchemy.git
-cd graphene-sqlalchemy/examples/flask_sqlalchemy
+Sample query
+```
+{
+  allShellcommands{
+    edges{
+      node{
+        command
+        connection{
+          createdAt
+          sourceIP
+          destIP
+        }
+      }
+    }
+  }
+}
 ```
 
-It is good idea (but not required) to create a virtual environment
-for this project. We'll do this using
-[virtualenv](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
-to keep things simple,
-but you may also find something like
-[virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/)
-to be useful:
+## Config
+In config.yaml
+* dbUlr - set the URL for the SQLAlchemy engine
+* seedDb - make tables and seed with data. If set to False you must create the DB schema yourself.
 
-```bash
-# Create a virtualenv in which we can install the dependencies
-virtualenv env
-source env/bin/activate
-```
+## Notes and Credit
 
-Now we can install our dependencies:
+This project was initially based on the [graphene-sqlalchemy 2.2.2 release example flask_sqlalchemy project](https://github.com/graphql-python/graphene-sqlalchemy/tree/2.2.2/examples/flask_sqlalchemy)
 
-```bash
-pip install -r requirements.txt
-```
+As of this writing graphene-sqlalchemy==2.2.2 is the latest available on PyPI and will not work with the [2.3.0.dev1 example flask_sqlalchemy project](https://github.com/graphql-python/graphene-sqlalchemy/tree/2.3.0.dev1/examples/flask_sqlalchemy)
 
-Now the following command will setup the database, and start the server:
-
-```bash
-./app.py
-
-```
-
-
-Now head on over to
-[http://127.0.0.1:5000/graphql](http://127.0.0.1:5000/graphql)
-and run some queries!
