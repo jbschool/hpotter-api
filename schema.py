@@ -38,14 +38,14 @@ for table in meta.tables:
     currMapper = sqlalchemy.orm.class_mapper(cls)
     currMapper.add_properties(properties)
     # sqlalchemy.orm.mapper(cls, meta.tables[table], properties=properties)
-    print('printing --------')
-    print(cls)
-    print(properties)
+    # print('printing --------')
+    # print(cls)
+    # print(properties)
 
     MAPPERS.update({cls_name: cls})
 
-print('Print mappers: ------')
-print(MAPPERS)
+# print('Print mappers: ------')
+# print(MAPPERS)
 
 def make_gql_class(new_class_name, table_name):
     namespace = dict(
@@ -60,9 +60,13 @@ def make_gql_class(new_class_name, table_name):
     return newClass
 
 
-ConnectionsGql = make_gql_class('ConnectionsGql', 'Connections')
-ShellCommandsGql = make_gql_class('ShellCommandsGql', 'Shellcommands')
-CredentialsGql = make_gql_class('CredentialsGql', 'Credentials')
+for tableName in MAPPERS:
+    className = tableName + 'Gql'
+    exec('%s = make_gql_class("%s", "%s")' % (className, className, tableName))
+
+# ConnectionsGql = make_gql_class('ConnectionsGql', 'Connections')
+# ShellCommandsGql = make_gql_class('ShellcommandsGql', 'Shellcommands')
+# CredentialsGql = make_gql_class('CredentialsGql', 'Shellcommands')
 
 # class ConnectionsGql(SQLAlchemyObjectType):
 #     class Meta:
@@ -87,7 +91,7 @@ class Query(graphene.ObjectType):
         ConnectionsGql, sort=ConnectionsGql.sort_argument())
 
     # Allows sorting over multiple columns, by default over the primary key
-    all_shellcommands = SQLAlchemyConnectionField(ShellCommandsGql)
+    all_shellcommands = SQLAlchemyConnectionField(ShellcommandsGql)
 
     # Disable sorting over this field
     all_credentials = SQLAlchemyConnectionField(CredentialsGql, sort=None)
