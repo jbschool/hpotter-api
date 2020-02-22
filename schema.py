@@ -12,13 +12,6 @@ from database import engine, Base # init_db,
 meta = sqlalchemy.MetaData()
 meta.reflect(bind=engine)
 
-# connTable = meta.tables['connections']
-# connTable = sqlalchemy.Table('connections', meta, autoload=True, autoload_with=engine)
-
-# repr_name = lambda t: '%s%s' % (t[0].upper(), t[1:])
-
-# cmdTable = connTable = sqlalchemy.Table('shellcommands', meta, autoload=True, autoload_with=engine)
-
 MAPPERS = {}
 repr_name = lambda t: '%s%s' % (t[0].upper(), t[1:])
 for table in meta.tables:
@@ -26,7 +19,6 @@ for table in meta.tables:
     # 1. create class object
     tabObj =cmdTable = connTable = sqlalchemy.Table(table, meta, autoload=True, autoload_with=engine)
     cls_name = repr_name(str(table))
-    # exec("""class %s(object): pass""" % cls_name)
     classDef = """class %s(Base):
         __table__ = tabObj
     """
@@ -45,7 +37,6 @@ for table in meta.tables:
     # 3. map table to class object 
     currMapper = sqlalchemy.orm.class_mapper(cls)
     currMapper.add_properties(properties)
-    # print(currMapper)
     # sqlalchemy.orm.mapper(cls, meta.tables[table], properties=properties)
     print('printing --------')
     print(cls)
@@ -53,29 +44,40 @@ for table in meta.tables:
 
     MAPPERS.update({cls_name: cls})
 
+print('Print mappers: ------')
 print(MAPPERS)
 
-# class ModelMaker(Base):
-#     __table__ = connTable
+def make_gql_class(new_class_name, table_name):
+    namespace = dict(
+        Meta = type('Meta', (object, ), dict(
+            model = MAPPERS[table_name],
+            interfaces = (relay.Node, )
+            )
+        )
+    )
 
-# class CmdMaker(Base):
-#     __table__ = cmdTable
-    # connection = sqlalchemy.orm.relationship('Connections')
+    newClass = type(new_class_name, (SQLAlchemyObjectType, ), namespace)
+    return newClass
 
-class ConnectionsGql(SQLAlchemyObjectType):
-    class Meta:
-        model = Connections
-        interfaces = (relay.Node, )
 
-class ShellCommandsGql(SQLAlchemyObjectType):
-    class Meta:
-        model = Shellcommands
-        interfaces = (relay.Node, )
+ConnectionsGql = make_gql_class('ConnectionsGql', 'Connections')
+ShellCommandsGql = make_gql_class('ShellCommandsGql', 'Shellcommands')
+CredentialsGql = make_gql_class('CredentialsGql', 'Credentials')
 
-class CredentialsGql(SQLAlchemyObjectType):
-    class Meta:
-        model = Credentials
-        interfaces = (relay.Node, )
+# class ConnectionsGql(SQLAlchemyObjectType):
+#     class Meta:
+#         model = MAPPERS['Connections'] # Connections
+#         interfaces = (relay.Node, )
+
+# class ShellCommandsGql(SQLAlchemyObjectType):
+#     class Meta:
+#         model = Shellcommands
+#         interfaces = (relay.Node, )
+
+# class CredentialsGql(SQLAlchemyObjectType):
+#     class Meta:
+#         model = Credentials
+#         interfaces = (relay.Node, )
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
