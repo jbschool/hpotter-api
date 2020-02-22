@@ -1,23 +1,23 @@
-    from models import Connections as ConnectionsModel
-    from models import ShellCommands as ShellCommandsModel
-    from models import Credentials as CredentialsModel
+# from models import Connections as ConnectionsModel
+# from models import ShellCommands as ShellCommandsModel
+# from models import Credentials as CredentialsModel
 
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
 
 import sqlalchemy
-from database import engine, init_db, Base
+from database import engine, Base # init_db, 
 # init_db()
 meta = sqlalchemy.MetaData()
 meta.reflect(bind=engine)
 
-connTable = meta.tables['connections']
-connTable = sqlalchemy.Table('connections', meta, autoload=True, autoload_with=engine)
+# connTable = meta.tables['connections']
+# connTable = sqlalchemy.Table('connections', meta, autoload=True, autoload_with=engine)
 
-repr_name = lambda t: '%s%s' % (t[0].upper(), t[1:])
+# repr_name = lambda t: '%s%s' % (t[0].upper(), t[1:])
 
-cmdTable = connTable = sqlalchemy.Table('shellcommands', meta, autoload=True, autoload_with=engine)
+# cmdTable = connTable = sqlalchemy.Table('shellcommands', meta, autoload=True, autoload_with=engine)
 
 MAPPERS = {}
 repr_name = lambda t: '%s%s' % (t[0].upper(), t[1:])
@@ -43,7 +43,10 @@ for table in meta.tables:
             })
 
     # 3. map table to class object 
-    sqlalchemy.orm.mapper(cls, meta.tables[table], properties=properties)
+    currMapper = sqlalchemy.orm.class_mapper(cls)
+    currMapper.add_properties(properties)
+    # print(currMapper)
+    # sqlalchemy.orm.mapper(cls, meta.tables[table], properties=properties)
     print('printing --------')
     print(cls)
     print(properties)
@@ -52,54 +55,26 @@ for table in meta.tables:
 
 print(MAPPERS)
 
-# table = meta.tables['shellcommands']
-# cls_name = repr_name(str(table))
-# exec("""class %s(object): pass""" % cls_name)
-# exec("""cls = %s""" % cls_name)
-# print(cls)
+# class ModelMaker(Base):
+#     __table__ = connTable
 
-# name = 'connections'
-# MAPPERS = {
-# }
-# properties = {}
-# properties.update({
-#     name: sqlalchemy.orm.relationship(lambda: MAPPERS[repr_name(name)]),
-#     })
-# print(properties)
-
-# sqlalchemy.orm.mapper(cls, meta.tables[table], properties=properties)
-
-# cls = repr_name(str(meta.tables['shellcommands']))
-# temp = repr_name('Connections')
-# properties = {'connections', sqlalchemy.orm.relationship(temp)}
-# print('printing ------')
-# print(cls)
-# print(properties)
-# sqlalchemy.orm.mapper(cls, cmdTable, properties)
-
-# for col in cmdTable.columns:
-#     print(col)
-
-class ModelMaker(Base):
-    __table__ = connTable
-
-class CmdMaker(Base):
-    __table__ = cmdTable
+# class CmdMaker(Base):
+#     __table__ = cmdTable
     # connection = sqlalchemy.orm.relationship('Connections')
 
-class Connections(SQLAlchemyObjectType):
+class ConnectionsGql(SQLAlchemyObjectType):
     class Meta:
-        model = ModelMaker
+        model = Connections
         interfaces = (relay.Node, )
 
-class ShellCommands(SQLAlchemyObjectType):
+class ShellCommandsGql(SQLAlchemyObjectType):
     class Meta:
-        model = CmdMaker
+        model = Shellcommands
         interfaces = (relay.Node, )
 
-class Credentials(SQLAlchemyObjectType):
+class CredentialsGql(SQLAlchemyObjectType):
     class Meta:
-        model = CredentialsModel
+        model = Credentials
         interfaces = (relay.Node, )
 
 class Query(graphene.ObjectType):
@@ -107,13 +82,13 @@ class Query(graphene.ObjectType):
 
     # Allow only single column sorting
     all_connections = SQLAlchemyConnectionField(
-        Connections, sort=Connections.sort_argument())
+        ConnectionsGql, sort=ConnectionsGql.sort_argument())
 
     # Allows sorting over multiple columns, by default over the primary key
-    all_shellcommands = SQLAlchemyConnectionField(ShellCommands)
+    all_shellcommands = SQLAlchemyConnectionField(ShellCommandsGql)
 
     # Disable sorting over this field
-    all_credentials = SQLAlchemyConnectionField(Credentials, sort=None)
+    all_credentials = SQLAlchemyConnectionField(CredentialsGql, sort=None)
 
 schema = graphene.Schema(query=Query)
 # schema = graphene.Schema(query=Query, types=[Department, Employee, Role])
