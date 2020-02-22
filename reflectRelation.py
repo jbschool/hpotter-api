@@ -1,3 +1,4 @@
+# https://stackoverflow.com/questions/6777524/how-to-automatically-reflect-table-relationships-in-sqlalchemy-or-sqlsoup-orm
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import mapper, relation
 
