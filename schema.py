@@ -1,14 +1,29 @@
-# from models import Connections as ConnectionsModel
-# from models import ShellCommands as ShellCommandsModel
-# from models import Credentials as CredentialsModel
-
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyConnectionField, SQLAlchemyObjectType
 
+import yaml
+
 import sqlalchemy
-from database import engine, Base # init_db, 
-# init_db()
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+def load_config():
+    config = {}
+    with open('config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+    return config
+
+config = load_config()
+
+engine = create_engine(config['dbUrl'], convert_unicode=True)
+db_session = scoped_session(sessionmaker(autocommit=False,
+                                         autoflush=False,
+                                         bind=engine))
+Base = declarative_base()
+Base.query = db_session.query_property()
+
 meta = sqlalchemy.MetaData()
 meta.reflect(bind=engine)
 
@@ -38,14 +53,8 @@ for table in meta.tables:
     currMapper = sqlalchemy.orm.class_mapper(cls)
     currMapper.add_properties(properties)
     # sqlalchemy.orm.mapper(cls, meta.tables[table], properties=properties)
-    # print('printing --------')
-    # print(cls)
-    # print(properties)
 
     MAPPERS.update({cls_name: cls})
-
-# print('Print mappers: ------')
-# print(MAPPERS)
 
 def make_gql_class(new_class_name, table_name):
     namespace = dict(
