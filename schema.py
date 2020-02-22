@@ -69,13 +69,11 @@ def make_gql_class(new_class_name, table_name):
     return newClass
 
 
+# e.g.
+# ConnectionsGql = make_gql_class('ConnectionsGql', 'Connections')
 for tableName in MAPPERS:
     className = tableName + 'Gql'
     exec('%s = make_gql_class("%s", "%s")' % (className, className, tableName))
-
-# ConnectionsGql = make_gql_class('ConnectionsGql', 'Connections')
-# ShellCommandsGql = make_gql_class('ShellcommandsGql', 'Shellcommands')
-# CredentialsGql = make_gql_class('CredentialsGql', 'Shellcommands')
 
 # class ConnectionsGql(SQLAlchemyObjectType):
 #     class Meta:
