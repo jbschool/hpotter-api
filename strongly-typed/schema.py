@@ -24,6 +24,12 @@ class Credentials(SQLAlchemyObjectType):
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
 
+    connections = graphene.List(Connections)
+
+    def resolve_connections(self, info):
+        query = Connections.get_query(info)
+        return query.all()
+
     # Allow only single column sorting
     all_connections = SQLAlchemyConnectionField(
         Connections, sort=Connections.sort_argument())
