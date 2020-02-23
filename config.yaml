@@ -1,3 +1,0 @@
----
-dbUrl: sqlite:///db.sqlite3
-seedDb: True

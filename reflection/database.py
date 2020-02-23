@@ -20,13 +20,10 @@ Base.query = db_session.query_property()
 
 def init_db():
 
-    if not config['seedDb']:
-        return
-
     # import models here so that they will be registered properly
     # on the metadata.  Otherwise need to import them first
     # before calling init_db()
-    from models import Connections, ShellCommands, Credentials
+    from tables import Connections, ShellCommands, Credentials
     from ipaddress import ip_address
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -75,3 +72,7 @@ def init_db():
     db_session.add(creds2)
 
     db_session.commit()
+
+if __name__ == '__main__':
+    from database import init_db
+    init_db()

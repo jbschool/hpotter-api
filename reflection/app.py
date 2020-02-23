@@ -2,7 +2,6 @@
 
 from flask import Flask
 from schema import schema, db_session
-
 from flask_graphql import GraphQLView
 
 app = Flask(__name__)
