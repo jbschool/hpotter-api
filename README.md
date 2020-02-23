@@ -13,7 +13,7 @@ This POC has two examples.
 * `pip3 install -r requirements.txt`
 * First Time Only
     * A DB is needed to reflect. Create a sample DB with
-    * `python -m create_db`
+    * `python3 -m create_db`
 *  `python3 -m app`
 *  Navigate to `localhost:5000/graphql`
 *  Query the DB!!!

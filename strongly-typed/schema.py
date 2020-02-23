@@ -30,6 +30,12 @@ class Query(graphene.ObjectType):
         query = Connections.get_query(info)
         return query.all()
 
+    credentials = graphene.List(Credentials)
+
+    def resolve_credentials(self, info):
+        query = Credentials.get_query(info)
+        return query.all()
+
     # Allow only single column sorting
     all_connections = SQLAlchemyConnectionField(
         Connections, sort=Connections.sort_argument())
