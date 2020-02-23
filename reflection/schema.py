@@ -28,12 +28,13 @@ meta = sqlalchemy.MetaData()
 meta.reflect(bind=engine)
 
 MAPPERS = {}
-repr_name = lambda t: '%s%s' % (t[0].upper(), t[1:])
+cap_first_char = lambda t: '%s%s' % (t[0].upper(), t[1:])
+lower_first_char = lambda t: '%s%s' % (t[0].lower(), t[1:])
 for table in meta.tables:
     cls = None
     # 1. create class object
-    tabObj =cmdTable = connTable = sqlalchemy.Table(table, meta, autoload=True, autoload_with=engine)
-    cls_name = repr_name(str(table))
+    tabObj = sqlalchemy.Table(table, meta, autoload=True, autoload_with=engine)
+    cls_name = cap_first_char(str(table))
     classDef = """class %s(Base):
         __table__ = tabObj
     """
@@ -46,7 +47,7 @@ for table in meta.tables:
         for fk in c.foreign_keys:
             name = str(fk.column).split('.')[0]
             properties.update({
-                name: sqlalchemy.orm.relation(lambda: MAPPERS[repr_name(name)]),
+                name: sqlalchemy.orm.relation(lambda: MAPPERS[cap_first_char(name)]),
             })
 
     # 3. map table to class object 
@@ -56,52 +57,41 @@ for table in meta.tables:
 
     MAPPERS.update({cls_name: cls})
 
-def make_gql_class(new_class_name, table_name):
+GRAPH_QL_SUFFIX = 'Gql'
+def make_gql_class(table_class_name):
     namespace = dict(
-        Meta = type('Meta', (object, ), dict(
-            model = MAPPERS[table_name],
-            interfaces = (relay.Node, )
-            )
+        Meta = type('Meta', (object, ),
+            dict(
+                model = MAPPERS[table_class_name],
+                interfaces = (relay.Node, ))
         )
     )
 
-    newClass = type(new_class_name, (SQLAlchemyObjectType, ), namespace)
+    newClass = type(table_class_name + GRAPH_QL_SUFFIX, (SQLAlchemyObjectType, ), namespace)
     return newClass
 
+for table_class_name in MAPPERS:
+    className = table_class_name + GRAPH_QL_SUFFIX
+    exec('%s = make_gql_class("%s")' % (className, table_class_name))
+    # ConnectionsGql = make_gql_class('Connections')
 
-# e.g.
-# ConnectionsGql = make_gql_class('ConnectionsGql', 'Connections')
-for tableName in MAPPERS:
-    className = tableName + 'Gql'
-    exec('%s = make_gql_class("%s", "%s")' % (className, className, tableName))
+def make_connection_field_assignment(table_class_name):
+    table_name = lower_first_char(table_class_name)
+    className = table_class_name + GRAPH_QL_SUFFIX
+    code = 'all_%s = SQLAlchemyConnectionField(%s)' % (table_name, className)
+    # all_connections = SQLAlchemyConnectionField(ConnectionsGql)
+    return code
 
-# class ConnectionsGql(SQLAlchemyObjectType):
-#     class Meta:
-#         model = MAPPERS['Connections'] # Connections
-#         interfaces = (relay.Node, )
-
-# class ShellCommandsGql(SQLAlchemyObjectType):
-#     class Meta:
-#         model = Shellcommands
-#         interfaces = (relay.Node, )
-
-# class CredentialsGql(SQLAlchemyObjectType):
-#     class Meta:
-#         model = Credentials
-#         interfaces = (relay.Node, )
+connection_fields = []
+for table_class_name in MAPPERS:
+    assignment = make_connection_field_assignment(table_class_name)
+    connection_fields.append(assignment)
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
 
-    # Allow only single column sorting
-    all_connections = SQLAlchemyConnectionField(
-        ConnectionsGql, sort=ConnectionsGql.sort_argument())
-
-    # Allows sorting over multiple columns, by default over the primary key
-    all_shellcommands = SQLAlchemyConnectionField(ShellcommandsGql)
-
-    # Disable sorting over this field
-    all_credentials = SQLAlchemyConnectionField(CredentialsGql, sort=None)
+    for assignment in connection_fields:
+        exec(assignment)
 
 schema = graphene.Schema(query=Query)
 # schema = graphene.Schema(query=Query, types=[Department, Employee, Role])
