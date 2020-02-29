@@ -4,14 +4,6 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy_utils import IPAddressType
 from createDb import Base
 
-# import graphene
-# from graphene_sqlalchemy.converter import convert_sqlalchemy_type
-
-# # https://github.com/graphql-python/graphene-sqlalchemy/issues/257
-# @convert_sqlalchemy_type.register(IPAddressType)
-# def convert_column_to_string(type, column, registry=None):
-#     return graphene.String
-
 class Connections(Base):
     # pylint: disable=E0213, R0903
     @declared_attr

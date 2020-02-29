@@ -33,9 +33,7 @@ def create_database():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-    tablesPath = moduleDir + 'tablesDict.yaml'
-    tablesDict = load_tables_dict(tablesPath)
-
+    tablesDict = load_tables_dict(moduleDir + 'tablesDict.yaml')
     for row in tablesDict['Connections']:
         conn = Connections(
             sourceIP = ip_address(row['sourceIP']),
@@ -45,7 +43,7 @@ def create_database():
             proto = row['proto']
         )
         db_session.add(conn)
-    db_session.commit()
+    db_session.commit() # need IDs assigned to set relationships
 
     for row in tablesDict['ShellCommands']:
         cmd = ShellCommands(
