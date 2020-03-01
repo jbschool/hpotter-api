@@ -2,7 +2,8 @@ from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy_utils import IPAddressType
-from createDb import Base
+
+from hpotter_api.test.createDb import Base
 
 class Connections(Base):
     # pylint: disable=E0213, R0903

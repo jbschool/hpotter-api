@@ -16,7 +16,7 @@ def load_tables_dict(pathToYaml):
     return tablesDict
 
 def create_database():
-    from tables import Connections, ShellCommands, Credentials
+    from hpotter_api.test.tables import Connections, ShellCommands, Credentials
     from ipaddress import ip_address
 
     moduleDir = dirname(abspath(__file__)) + '/'
