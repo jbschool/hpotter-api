@@ -1,15 +1,15 @@
-# import http.server
 from http.server import SimpleHTTPRequestHandler
 from http import HTTPStatus
-from datetime import datetime
 import socketserver
-from schema import schema
 from json import loads, dumps
+
+from schema import schema
+from config import port
 
 class PostHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
-        
+
         req_content_type = self.headers.get('Content-Type', False)
         if not req_content_type or req_content_type != 'application/json':
             self.send_response(HTTPStatus.BAD_REQUEST)
@@ -30,13 +30,11 @@ class PostHandler(SimpleHTTPRequestHandler):
 
         self.wfile.write(result.encode())
 
-PORT = 8080
-handler = PostHandler
 
-with socketserver.TCPServer(('',PORT), handler) as httpd:
+with socketserver.TCPServer(('', port), PostHandler) as httpd:
     try:
         httpd.serve_forever()
-    
+
     except KeyboardInterrupt:
         print('shutting the server down')
         httpd.shutdown()
