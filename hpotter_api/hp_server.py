@@ -9,18 +9,28 @@ from .config import port
 
 class PostHandler(SimpleHTTPRequestHandler):
 
+    def bad_request_resp(self):
+        self.send_response(HTTPStatus.BAD_REQUEST)
+        self.send_header('Content-Length', 0)
+        self.end_headers()
+
     def do_POST(self):
 
         req_content_type = self.headers.get('Content-Type', False)
         if not req_content_type or req_content_type != 'application/json':
-            self.send_response(HTTPStatus.BAD_REQUEST)
-            self.send_header('Content-Length', 0)
-            self.end_headers()
+            self.bad_request_resp()
             return
 
         content_len = int(self.headers.get('Content-Length', 0))
         post_body = self.rfile.read(content_len).decode()
-        query = loads(post_body)['query']
+        
+        query = {}
+        try:
+            query = loads(post_body)['query']
+        except (Exception) as ex:
+            logging.error(repr(ex))
+            self.bad_request_resp()
+            return
 
         result = schema.execute(query).to_dict()
         result = dumps(result)
